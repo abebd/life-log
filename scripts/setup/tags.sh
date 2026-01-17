@@ -1,3 +1,3 @@
-rm tags
+[ -f tags ] && rm tags
 
-ctags -R --exclude=.venv --exclude=.git .
+ctags -R --exclude=.venv --exclude=.git --exclude="__pycache__" --exclude="*.pyc" .
