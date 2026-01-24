@@ -1,12 +1,13 @@
 import logging
 from pathlib import Path
 
+
 def setup_logging(verbose: bool):
     # 1. Determine the path: ~/git/repo-name/logs/app.log
     # Path(__file__) gets the location of logger.py
-    project_root = Path(__file__).parent.parent 
+    project_root = Path(__file__).parent.parent
     log_dir = project_root / "logs"
-    
+
     # Create the directory if it doesn't exist
     log_dir.mkdir(parents=True, exist_ok=True)
     log_filepath = log_dir / "app.log"
@@ -17,7 +18,7 @@ def setup_logging(verbose: bool):
 
     # 3. Setup the Root Logger
     root_logger = logging.getLogger()
-    root_logger.setLevel(logging.DEBUG) # Catch everything
+    root_logger.setLevel(logging.DEBUG)  # Catch everything
 
     # 4. File Handler (Always DEBUG)
     f_handler = logging.FileHandler(log_filepath, mode="w")

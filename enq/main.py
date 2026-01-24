@@ -13,7 +13,7 @@ def main():
 
     setup_logging(args.verbose)
 
-    config = Config()
+    config = Config(args.config_file)
 
     # TODO add part to override config values with parameters
     # e.g. override storagetype

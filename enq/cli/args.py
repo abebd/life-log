@@ -1,5 +1,6 @@
 import argparse
 import sys
+import os
 
 from dataclasses import dataclass
 from importlib.metadata import version as get_version
@@ -13,6 +14,7 @@ class CliArgs:
     list_entries: bool
     read_entry: str
     new: bool
+    config_file: str
 
 
 def parse_args() -> CliArgs:
@@ -38,7 +40,13 @@ def parse_args() -> CliArgs:
 
     parser.add_argument("--list-entries", action="store_true", help="List entries")
 
-    parser.add_argument("--verbose", action="store_true", help="Enable verbose output.")
+    IS_DEBUG = os.getenv("DEBUG") == "1"
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Enable verbose output.",
+        default=IS_DEBUG,
+    )
 
     __version__ = get_version("enq")
 
@@ -47,12 +55,17 @@ def parse_args() -> CliArgs:
     )
 
     parser.add_argument(
-        "-r", "--read-entry",
+        "-r",
+        "--read-entry",
         type=str,
         nargs="?",
         const="today",
         metavar="TEXT",
         help="Write the content of an entry to stdio. Default value is today.",
+    )
+
+    parser.add_argument(
+        "--config-file", type=str, metavar="TEXT", help="Specify config file to use."
     )
 
     parser.add_argument(

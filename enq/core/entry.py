@@ -55,17 +55,14 @@ class EntryHandler:
         for entry in self.entries:
             print(entry["name"])
 
-    def read_entry(self, entry_name):
+    def read_entry(self, entry_name: str) -> bool:
         entry_found = False
         extension = f"{self.config.settings['extension']}"
 
         if entry_name == "today":
-            entry_name = self.entry_timestamp.strftime(
-                f"%Y-%m-%d.{extension}"
-            )
+            entry_name = self.entry_timestamp.strftime(f"%Y-%m-%d.{extension}")
 
         if self.type == StorageType.FILE:
-
             # If extension was not sent from user
             # Might need an --override-extension parameter
             if not entry_name[-len(extension) :] == extension:
@@ -149,8 +146,7 @@ class EntryHandler:
             ) as tf:
                 temp_path = Path(tf.name)
 
-                # tf.write(f"{self._get_header_time_str()}\n\n")
-                tf.write(f"# Put title here, or remove me...\n\n")
+                tf.write("# Put title here, or remove me...\n\n")
 
             try:
                 editor.open(temp_path)
@@ -158,7 +154,7 @@ class EntryHandler:
                 content = temp_path.read_text(encoding="utf-8")
 
                 title, message = extract_title_from_content(content)
-                
+
                 logger.debug(f"User wrote:\nTitle: {title}\nMessage: {message}")
 
                 if message != "":
@@ -212,3 +208,9 @@ class EntryHandler:
 
     def _get_header_time_str(self):
         return self.entry_timestamp.strftime("## %H:%M:%S")
+
+
+class Entry:
+    def __init__(self):
+        # TODO
+        pass
