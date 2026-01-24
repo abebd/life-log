@@ -1,9 +1,9 @@
 import logging
 
-from mypy_diary.core.entry import EntryHandler
-from mypy_diary.cli.args import parse_args
-from mypy_diary.core.logger import setup_logging
-from mypy_diary.core.config import Config
+from enq.core.entry import EntryHandler
+from enq.cli.args import parse_args
+from enq.core.logger import setup_logging
+from enq.core.config import Config
 
 logger = logging.getLogger(__name__)
 

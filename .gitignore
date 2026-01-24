@@ -14,4 +14,4 @@ tags
 
 uv.lock
 
-mypy_diary/logs/
+enq/logs/

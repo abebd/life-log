@@ -6,8 +6,8 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 
-from mypy_diary.core.types import StorageType, resolve_type_from_string
-from mypy_diary.editor import Editor
+from enq.core.types import StorageType, resolve_type_from_string
+from enq.editor import Editor
 
 logger = logging.getLogger(__name__)
 

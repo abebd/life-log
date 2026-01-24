@@ -40,7 +40,7 @@ def parse_args() -> CliArgs:
 
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output.")
 
-    __version__ = get_version("mypy-diary")
+    __version__ = get_version("enq")
 
     parser.add_argument(
         "-v", "--version", action="version", version=f"%(prog)s {__version__}"
