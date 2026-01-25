@@ -3,8 +3,8 @@ import os
 import logging
 
 from pathlib import Path
-from enq.storage.base import Storage
-from enq.core.entry import Entry
+from lifelog.storage.base import Storage
+from lifelog.core.entry import Entry
 
 logger = logging.getLogger(__name__)
 

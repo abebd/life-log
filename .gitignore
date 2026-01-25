@@ -14,7 +14,7 @@ tags
 
 uv.lock
 
-enq/logs/
+lifelog/logs/
 
 todo
 diary.db

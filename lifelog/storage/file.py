@@ -1,4 +1,4 @@
-from enq.storage.base import Storage
+from lifelog.storage.base import Storage
 
 
 class FileStorage(Storage):

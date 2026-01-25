@@ -3,7 +3,7 @@ import subprocess
 
 from pathlib import Path
 
-from enq.cli.interface import ui, State
+from lifelog.cli.interface import ui, State
 
 
 class Editor:

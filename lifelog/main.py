@@ -2,14 +2,14 @@ import logging
 
 from importlib.metadata import version as get_version
 
-from enq.core.entry import EntryHandler
-from enq.cli.args import parse_args
-from enq.core.logger import setup_logging
-from enq.core.config import Config
-from enq.cli.menu import MenuHandler
-from enq.cli.interface import ui
-from enq.storage.database import DatabaseStorage
-from enq.storage.file import FileStorage
+from lifelog.core.entry import EntryHandler
+from lifelog.cli.args import parse_args
+from lifelog.core.logger import setup_logging
+from lifelog.core.config import Config
+from lifelog.cli.menu import MenuHandler
+from lifelog.cli.interface import ui
+from lifelog.storage.database import DatabaseStorage
+from lifelog.storage.file import FileStorage
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ class App:
 
         setup_logging(self.args.verbose)
 
-        logger.debug(f"-----| Starting run @ enq-{get_version('enq')} |-----")
+        logger.debug(f"-----| Starting run @ lifelog-{get_version('lifelog')} |-----")
         logger.debug(f"Current state: {ui.state}")
         logger.debug(f"Args passed from user: {self.args}")
 

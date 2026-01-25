@@ -5,8 +5,8 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-from enq.cli.editor import Editor
-from enq.cli.menu import prompt_selection
+from lifelog.cli.editor import Editor
+from lifelog.cli.menu import prompt_selection
 
 logger = logging.getLogger(__name__)
 

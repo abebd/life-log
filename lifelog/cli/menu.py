@@ -1,8 +1,8 @@
 import logging
 
 from simple_term_menu import TerminalMenu
-from enq.utils.cli import send_cls
-from enq.cli.interface import ui, State
+from lifelog.utils.cli import send_cls
+from lifelog.cli.interface import ui, State
 
 logger = logging.getLogger(__name__)
 

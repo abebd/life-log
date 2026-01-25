@@ -1,9 +1,0 @@
-[settings]
-editor="vim"
-verbose=false
-storage_mode="file"
-extension="md"
-
-[paths]
-diary_db="~/.local/share/enq/diary.db"
-diary_folder="~/.local/share/enq/diary"

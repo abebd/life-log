@@ -37,7 +37,7 @@ def parse_args() -> CliArgs:
     )
 
 
-    __version__ = get_version("enq")
+    __version__ = get_version("lifelog")
     parser.add_argument(
         "-v", "--version", action="version", version=f"%(prog)s {__version__}"
     )
