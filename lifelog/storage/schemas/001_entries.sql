@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS entries (
+    entry_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp TIMESTAMP NOT NULL,
+    body TEXT NOT NULL,
+    updated_at TIMESTAMP NULL
+)

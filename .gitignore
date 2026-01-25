@@ -10,4 +10,12 @@ dist/
 build/
 
 *.swp
-tags/
+tags
+
+uv.lock
+
+lifelog/logs/
+
+todo
+diary.db
+config.toml

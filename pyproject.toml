@@ -3,11 +3,22 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "mypy-diary"
+name = "lifelog"
 version = "0.0.1"
-dependencies = []
+requires-python = ">3.13.0"
+dependencies = [
+    "platformdirs>=4.5.1",
+    "questionary>=2.1.1",
+    "ruff>=0.14.14",
+    "simple-term-menu>=1.6.6",
+]
 
 [project.scripts]
 # This line creates the "magic" command:
 # command_name = "package.file:function_name"
-mypy-diary = "mypy_diary.main:main"
+lifelog = "lifelog.main:main"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.14.13",
+]
