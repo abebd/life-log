@@ -6,6 +6,7 @@ venv/
 ENV/
 
 *.egg-info/
+*.dist-info/
 dist/
 build/
 
