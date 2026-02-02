@@ -41,22 +41,25 @@ class Interface:
     def print(self, *args):
         message = " ".join(map(str, args))
 
+        logger.debug(f"User wants to print {message} in state {str(self._state)}")
+
         match self.state:
             case State.MENU:
+                logger.debug(f"Adding message to buffer: '{message}'")
                 self._buffer.append(message)
 
             case State.CLI:
-                logger.info(
+                logger.debug(
                     f"Printing message: '{message}'"
                 )  # TODO: maybe unecessary idk
                 print(message)
 
             case _:
-                raise ValueError(
-                    f"State {self.state} does not have a valid way of dealing with user messages."
-                )
+                msg = f"State {self.state} does not have a valid way of dealing with user messages."
+                logger.CRITICAL(msg)
+                raise ValueError(msg)
 
-    def flush_buffer(self):
+    def flush(self):
         content = "\n".join(self._buffer)
         self._buffer = []
         return content

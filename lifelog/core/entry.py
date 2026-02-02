@@ -7,6 +7,7 @@ from pathlib import Path
 
 from lifelog.cli.editor import Editor
 from lifelog.cli.menu import prompt_selection
+from lifelog.cli.interface import ui
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +33,8 @@ class EntryHandler:
             f"Created entry: {json.dumps({'body': entry.body, 'timestamp': str(entry.timestamp)})}"
         )
 
+        ui.print(f"Created entry: {entry}")
+
         self.storage.add_entry(entry)
 
     def create_entry_from_editor(self):
@@ -56,7 +59,9 @@ class EntryHandler:
             )
 
             if entry.body != "":
+                logger.info("Adding entry...")
                 self.storage.add_entry(entry)
+                ui.print(f"Created entry: {entry}")
 
         finally:
             if temp_path.exists():
@@ -94,17 +99,16 @@ class EntryHandler:
                 temp_path.unlink()
 
     def select_and_open_entry(self):
-        # Keys currently is just the filename, and this is fine as a
-        # key if we're just fetching entries from one folder.
-        # If we start fetching entries from multiple folders,
-        # we might need to provide the full path instead.
-
         entries = self.storage.get_entries()
 
         selected_entry = prompt_selection(
             entries,
             title="Select entry to view: ",
         )
+
+        if not selected_entry:
+            logger.warning("No entry was selected / Unable to find the selected entry")
+            return
 
         logger.info(f"Chose entry: {selected_entry}")
 

@@ -34,6 +34,10 @@ class MenuHandler:
             logger.info(f"Current buffer: {ui.buffer}")
 
             self._send_header()
+
+            if content := ui.flush(): 
+                print(f"\n{content}")
+
             choice = input("\nEnter option: ").strip().lower()
 
             found = False
