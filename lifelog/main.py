@@ -1,6 +1,8 @@
 import logging
+import os
 
 from importlib.metadata import version as get_version
+from dotenv import load_dotenv
 
 from lifelog.core.entry import EntryHandler
 from lifelog.cli.args import parse_args
@@ -13,6 +15,10 @@ from lifelog.storage.file import FileStorage
 
 logger = logging.getLogger(__name__)
 
+load_dotenv()
+
+DEBUG_MODE = os.getenv("DEBUG_MODE") == "1"
+
 
 class App:
     def __init__(self):
@@ -20,17 +26,21 @@ class App:
 
         setup_logging(self.args.verbose)
 
-        logger.debug(f"-----| Starting run @ lifelog-{get_version('lifelog')} |-----")
-        logger.debug(f"Current state: {ui.state}")
-        logger.debug(f"Args passed from user: {self.args}")
+        logger.info(f"-----| Starting run @ lifelog-{get_version('lifelog')} |-----")
+        if DEBUG_MODE:
+            logger.info(
+                ">>>>> DEBUG MODE IS ENABLED!!! Disable it by setting env variable 'DEBUG_MODE' to '0'."
+            )
+        logger.info(f"Current state: {ui.state}")
+        logger.info(f"Args passed from user: {self.args}")
 
         self.config = Config(self.args.config_file)
 
         if self.config.settings["storage_mode"] == "database":
-            logger.debug("Using storage type database")
+            logger.info("Using storage type database")
             self.storage = DatabaseStorage(self.config)
         else:
-            logger.debug("Using storage type file")
+            logger.info("Using storage type file")
             self.storage = FileStorage(self.config)
 
         self.entry_handler = EntryHandler(self.config, self.storage)

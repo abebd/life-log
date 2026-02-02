@@ -31,10 +31,9 @@ class MenuHandler:
     def run(self):
         ui.state = State.MENU
         while True:
+            logger.info(f"Current buffer: {ui.buffer}")
+
             self._send_header()
-
-            logging.debug(f"Current buffer: {ui.buffer}")
-
             choice = input("\nEnter option: ").strip().lower()
 
             found = False

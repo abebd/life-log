@@ -8,11 +8,17 @@ from lifelog.core.entry import Entry
 
 logger = logging.getLogger(__name__)
 
+DEBUG_MODE = os.getenv("DEBUG_MODE") == "1"
+
 
 class DatabaseStorage(Storage):
     def __init__(self, config):
         self.config = config
-        self.db_path = Path(self.config.paths["diary_db"]).expanduser()
+        if DEBUG_MODE:
+            self.db_path = Path(__file__).parent.parent.parent / "dev_diary.db"
+        else:
+            self.db_path = Path(self.config.paths["diary_db"]).expanduser()
+        logger.info(f"Using db {str(self.db_path)}")
         self.schemas_path = Path(__file__).parent / "schemas"
         self.connection = None
         self._setup_database()
@@ -39,13 +45,13 @@ class DatabaseStorage(Storage):
         try:
             self.connection.executescript(sql)
             self.connection.commit()
-            logger.debug(f"Executed script {script}")
+            logger.info(f"Executed script {script}")
         except sqlite3.Error as e:
             logger.error(f"Unable to execute script {script}, {e}")
 
     def _setup_database(self):
         if not os.path.exists(self.db_path):
-            logger.debug(f"Unable to find database {self.db_path}, creating it.")
+            logger.info(f"Unable to find database {self.db_path}, creating it.")
             self.db_path.parent.mkdir(parents=True, exist_ok=True)
 
         self.connection = sqlite3.connect(self.db_path)
@@ -66,7 +72,7 @@ class DatabaseStorage(Storage):
 
             new_id = cursor.lastrowid
 
-            logger.debug(
+            logger.info(
                 f"Inserted entry for timestamp {str(entry.timestamp)} at entry_id {str(new_id)}"
             )
 
@@ -74,24 +80,29 @@ class DatabaseStorage(Storage):
             logger.error(f"Failed to insert entry into database: {e}")
 
     def update_entry(self, old_entry, new_entry):
-
-        try: 
+        try:
             with self.connection:
-                self.connection.execute("""
+                self.connection.execute(
+                    """
                     INSERT INTO entries_history (entry_id, timestamp, body, archived_at)
                     SELECT entry_id, timestamp, body, ?
                     FROM entries
                     WHERE entry_id = ?;
-                """, (str(new_entry.timestamp), old_entry.uid))
+                """,
+                    (str(new_entry.timestamp), old_entry.uid),
+                )
 
-                self.connection.execute("""
+                self.connection.execute(
+                    """
                     UPDATE entries
                     SET body = ?,
                         updated_at = ?
                     WHERE entry_id = ?;
-                """, (new_entry.body, str(new_entry.timestamp), old_entry.uid))
+                """,
+                    (new_entry.body, str(new_entry.timestamp), old_entry.uid),
+                )
 
-                logger.debug(f"Updated entry for uid {str(old_entry.uid)}")
+                logger.info(f"Updated entry for uid {str(old_entry.uid)}")
 
         except sqlite3.Error as e:
             logger.error(f"Failed to update entry for {str(old_entry.uid)}: {e}")
@@ -114,7 +125,7 @@ class DatabaseStorage(Storage):
             entries = []
 
             for row in cursor:
-                logger.debug(f"Found row: {row}")
+                logger.info(f"Found row: {row}")
 
                 id = row[0]
                 timestamp = row[1]
@@ -129,7 +140,7 @@ class DatabaseStorage(Storage):
 
                 entries.append(entry)
 
-            logger.debug(f"Found {len(entries)} entries")
+            logger.info(f"Found {len(entries)} entries")
             return entries
 
         except sqlite3.Error as e:

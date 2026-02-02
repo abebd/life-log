@@ -10,6 +10,7 @@ from lifelog.cli.menu import prompt_selection
 
 logger = logging.getLogger(__name__)
 
+
 class EntryHandler:
     def __init__(self, config, storage):
         self.config = config
@@ -27,7 +28,7 @@ class EntryHandler:
             storage_type=self.storage.type,
         )
 
-        logger.debug(
+        logger.info(
             f"Created entry: {json.dumps({'body': entry.body, 'timestamp': str(entry.timestamp)})}"
         )
 
@@ -50,7 +51,7 @@ class EntryHandler:
                 storage_type=self.storage.type,
             )
 
-            logger.debug(
+            logger.info(
                 f"User wrote: {json.dumps({'body': entry.body, 'timestamp': str(entry.timestamp)})}"
             )
 
@@ -82,7 +83,7 @@ class EntryHandler:
             )
 
             if new_entry != entry:
-                logger.debug(
+                logger.info(
                     f"User updated entry: {json.dumps({'body': new_entry.body, 'timestamp': str(new_entry.timestamp)})}"
                 )
 
@@ -105,7 +106,7 @@ class EntryHandler:
             title="Select entry to view: ",
         )
 
-        logging.debug(f"Chose entry: {selected_entry}")
+        logger.info(f"Chose entry: {selected_entry}")
 
         self.open_entry_in_editor(selected_entry)
 

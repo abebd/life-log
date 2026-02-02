@@ -4,6 +4,7 @@ __pycache__/
 .venv/
 venv/
 ENV/
+.env
 
 *.egg-info/
 *.dist-info/
@@ -18,5 +19,5 @@ uv.lock
 lifelog/logs/
 
 todo
-diary.db
-config.toml
+dev_diary.db
+dev_config.toml

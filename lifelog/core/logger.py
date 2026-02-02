@@ -28,7 +28,6 @@ def setup_logging(verbose: bool):
 
     # 5. Console Handler (Level based on --verbose)
     c_handler = logging.StreamHandler()
-    c_level = logging.DEBUG if verbose else logging.INFO
-    c_handler.setLevel(c_level)
+    c_handler.setLevel(logging.ERROR)
     c_handler.setFormatter(shell_format)
     root_logger.addHandler(c_handler)

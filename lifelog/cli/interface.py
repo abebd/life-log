@@ -2,7 +2,7 @@ import logging
 
 from enum import Enum, auto
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger(__name__)
 
 
 class State(Enum):
@@ -23,7 +23,7 @@ class Interface:
 
     @state.setter
     def state(self, value: State):
-        logger.debug(f"Setting state to: {value}")
+        logger.info(f"Setting state to: {value}")
         self._last_state = self._state
         self._state = value
 
@@ -35,7 +35,7 @@ class Interface:
         if not self._last_state:
             raise Exception("Can't reset state if its last state was None")
 
-        logger.debug(f"Setting state to: {self._last_state}")
+        logger.info(f"Setting state to: {self._last_state}")
         self._state = self._last_state
 
     def print(self, *args):
@@ -46,7 +46,7 @@ class Interface:
                 self._buffer.append(message)
 
             case State.CLI:
-                logger.debug(
+                logger.info(
                     f"Printing message: '{message}'"
                 )  # TODO: maybe unecessary idk
                 print(message)
