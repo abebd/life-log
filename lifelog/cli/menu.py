@@ -1,11 +1,14 @@
 import logging
+import os
 
+from importlib.metadata import version as get_version
 from simple_term_menu import TerminalMenu
 from lifelog.utils.cli import send_cls
 from lifelog.cli.interface import ui, State
 
 logger = logging.getLogger(__name__)
 
+DEBUG_MODE = os.getenv("DEBUG_MODE") == "1"
 
 class MenuHandler:
     def __init__(self, app, config):
@@ -23,6 +26,12 @@ class MenuHandler:
 
     def _send_header(self):
         send_cls()
+
+        if DEBUG_MODE:
+            print(">>>>> DEBUG MODE IS ENABLED <<<<<\n")
+
+        if self.config.menu["decorative_header"]:
+            print(f"Version: lifelog-{get_version('lifelog')}\n================================================")
 
         for keys, label, _ in self.menu_options:
             display_key = keys[0] if isinstance(keys, tuple) else keys

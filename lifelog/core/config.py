@@ -29,6 +29,8 @@ class Config:
         self.settings = self.data["settings"]
         self.paths = self.data["paths"]
         self.storage = self.data["storage"]
+        self.ai = self.data["ai"]
+        self.menu = self.data["menu"]
 
     def _resolve_config_path(self, user_provided_path: str, default_path: Path):
         if user_provided_path:
