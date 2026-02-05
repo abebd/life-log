@@ -1,5 +1,6 @@
 import shutil
 import subprocess
+import tempfile
 
 from pathlib import Path
 
@@ -22,3 +23,18 @@ class Editor:
             ui.reset_state()
         except subprocess.CalledProcessError as e:
             print(f"Editor exited with an error: {e}")
+
+    def edit_text(self, initial_content: str) -> str:
+        temp_path = None
+        try:
+            with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".tmp") as tf:
+                temp_path = Path(tf.name)
+                tf.write(initial_content)
+            
+            self.open(temp_path)
+
+            return temp_path.read_text(encoding="utf-8")
+
+        finally:
+            if temp_path and temp_path.exists():
+                temp_path.unlink()

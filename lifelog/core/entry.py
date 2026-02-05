@@ -6,15 +6,16 @@ from datetime import datetime
 from pathlib import Path
 
 from lifelog.cli.editor import Editor
-from lifelog.cli.menu import prompt_selection
+from lifelog.cli.menu import prompt_selection, prompt_user_input
 from lifelog.cli.interface import ui
 
 logger = logging.getLogger(__name__)
 
 
 class EntryHandler:
-    def __init__(self, config, storage):
-        self.config = config
+    def __init__(self, app, config, storage):
+        self.app = app
+        self.config = config # TODO use getattr
         self.storage = storage
         # self.entries = entries
 
@@ -67,43 +68,39 @@ class EntryHandler:
             if temp_path.exists():
                 temp_path.unlink()
 
-    def open_entry_in_editor(self, entry):
+    def edit_entry(self, entry, header=""):
         editor = Editor(self.config.settings["editor"])
 
         if entry is None:
             logger.warning("Failed to find entry to open in editor")
+            return
 
-        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tf:
-            temp_path = Path(tf.name)
+        new_content = editor.edit_text(entry.body)
 
-            tf.write(entry.body)
+        new_entry = Entry(
+            timestamp=datetime.now(),
+            body=new_content,
+            storage_type=self.storage.type,
+        )
 
-        try:
-            editor.open(temp_path)
-
-            new_entry = Entry(
-                timestamp=datetime.now(),
-                body=temp_path.read_text(encoding="utf-8"),
-                storage_type=self.storage.type,
+        if new_entry != entry:
+            logger.info(
+                f"User updated entry: {json.dumps({'body': new_entry.body, 'timestamp': str(new_entry.timestamp)})}"
             )
 
-            if new_entry != entry:
-                logger.info(
-                    f"User updated entry: {json.dumps({'body': new_entry.body, 'timestamp': str(new_entry.timestamp)})}"
-                )
+            self.storage.update_entry(entry, new_entry)
 
-                self.storage.update_entry(entry, new_entry)
-
-        finally:
-            if temp_path.exists():
-                temp_path.unlink()
-
-    def select_and_open_entry(self):
+    def select_entry_cli(self, title="Select an entry: "):
         entries = self.storage.get_entries()
+
+        if len(entries) == 0:
+            ui.print("No entries found.")
+            logger.warning("No entries found using current storage mode")
+            return
 
         selected_entry = prompt_selection(
             entries,
-            title="Select entry to view: ",
+            title=title,
         )
 
         if not selected_entry:
@@ -111,9 +108,63 @@ class EntryHandler:
             return
 
         logger.info(f"Chose entry: {selected_entry}")
+        return selected_entry
 
-        self.open_entry_in_editor(selected_entry)
+    def select_and_open_entry(self):
+        selected_entry = self.select_entry_cli(title="\nSelect an entry to view: ")
 
+        if selected_entry:
+            self.open_entry_in_editor(selected_entry)
+
+    def select_and_tag_entry(self):
+        # TODO fix this function its ugly and too large and should not be here.
+        #      most of it should be moved to lifelog/core/tagging.py
+        #      also check the other functions in this class if they can be refactored.
+        selected_entry = self.select_entry_cli(title="\nSelect an entry to tag: ")
+
+        if not selected_entry:
+            logger.warning("No entry was selected / Unable to find the selected entry")
+            return
+
+        user_input = prompt_user_input(
+            title=f"\nOpen entry in {self.config.settings["editor"]}? [Y/n]: ",
+            default="Y",
+        )
+        if not (user_input == "Y" or user_input == "y"):
+            msg = "Editor is the only option for tagging. Rest is NYI!"
+            ui.print(f"WARNING: {msg}")
+            logger.warning(msg)
+            return
+
+        editor = Editor(self.config.settings["editor"])
+
+        body = f"\n# Write the tags you wish to add to this entry on the empty line above separated by a comma: \n# Example: 'fitness, healthy, happy, good day'\n################################################\n{selected_entry.body}"
+
+        content = editor.edit_text(body)
+        tags = content.split("\n")[0].split(",")
+
+        if not tags:
+            msg = "No tags were provided."
+            ui.print(msg)
+            return
+
+        ui.print(f"Identified {len(tags)} tags. ({",".join(tags)})")
+
+        if content := ui.flush(): 
+            print(f"\n{content}")
+
+        user_input = prompt_user_input(
+            title="Apply these tags? [Y/n]:  ",
+            default="Y",
+        )
+
+        if not (user_input == "Y" or user_input == "y"):
+            return
+
+        # TODO fix the DB part.
+        #      update schema, make it apply tags if they are missing
+        #      might also need some functionality to manage the tags
+        #      can maybe be done using edit_entry
 
 class Entry:
     def __init__(self, body, timestamp, storage_type=None, uid=None):

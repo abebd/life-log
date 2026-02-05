@@ -13,7 +13,7 @@ DEBUG_MODE = os.getenv("DEBUG_MODE") == "1"
 
 class DatabaseStorage(Storage):
     def __init__(self, config):
-        self.config = config
+        self.config = config # TODO use getattr
         if DEBUG_MODE:
             self.db_path = Path(__file__).parent.parent.parent / "dev_diary.db"
         else:
@@ -56,7 +56,8 @@ class DatabaseStorage(Storage):
 
         self.connection = sqlite3.connect(self.db_path)
 
-        for script in os.listdir(self.schemas_path):
+        #for script in os.listdir(self.schemas_path):
+        for script in self.schemas_path.glob("*.sql"):
             self.run_script(Path(self.schemas_path / script))
 
     def add_entry(self, entry):

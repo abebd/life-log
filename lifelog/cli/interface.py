@@ -41,8 +41,6 @@ class Interface:
     def print(self, *args):
         message = " ".join(map(str, args))
 
-        logger.debug(f"User wants to print {message} in state {str(self._state)}")
-
         match self.state:
             case State.MENU:
                 logger.debug(f"Adding message to buffer: '{message}'")
@@ -62,6 +60,7 @@ class Interface:
     def flush(self):
         content = "\n".join(self._buffer)
         self._buffer = []
+        logger.debug("Buffer flushed")
         return content
 
 

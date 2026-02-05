@@ -4,14 +4,16 @@ import os
 from importlib.metadata import version as get_version
 from dotenv import load_dotenv
 
-from lifelog.core.entry import EntryHandler
 from lifelog.cli.args import parse_args
+from lifelog.core.entry import EntryHandler
 from lifelog.core.logger import setup_logging
 from lifelog.core.config import Config
+from lifelog.core.tagging import TagHandler
 from lifelog.cli.menu import MenuHandler
 from lifelog.cli.interface import ui
 from lifelog.storage.database import DatabaseStorage
 from lifelog.storage.file import FileStorage
+from lifelog.ai.base import AIHandler
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +36,12 @@ class App:
         logger.info(f"Current state: {ui.state}")
         logger.info(f"Args passed from user: {self.args}")
 
-        self.config = Config(self.args.config_file)
+        self.config = Config(self.args.config_file) # TODO use getattr
+
+        if self.config.ai["enabled"]:
+            self.ai = AIHandler(self.config)
+        else:
+            logger.warning("AI-mode is disabled. Enable it by setting 'enabled=true' under [ai] in your config.")
 
         if self.config.settings["storage_mode"] == "database":
             logger.info("Using storage type database")
@@ -43,8 +50,9 @@ class App:
             logger.info("Using storage type file")
             self.storage = FileStorage(self.config)
 
-        self.entry_handler = EntryHandler(self.config, self.storage)
+        self.entry_handler = EntryHandler(self, self.config, self.storage)
         self.menu_handler = MenuHandler(self, self.config)
+        self.tag_handler = TagHandler(self, self.config)
 
     def run(self):
         ran_something = False
