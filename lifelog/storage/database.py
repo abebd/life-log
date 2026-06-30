@@ -5,6 +5,7 @@ import logging
 from pathlib import Path
 from lifelog.storage.base import Storage
 from lifelog.core.entry import Entry
+from lifelog.core.exceptions import EntryNotFoundError
 
 logger = logging.getLogger(__name__)
 
@@ -13,19 +14,15 @@ DEBUG_MODE = os.getenv("DEBUG_MODE") == "1"
 
 class DatabaseStorage(Storage):
     def __init__(self, config):
-        self.config = config
+        self.config = config # TODO use getattr
         if DEBUG_MODE:
             self.db_path = Path(__file__).parent.parent.parent / "dev_diary.db"
         else:
             self.db_path = Path(self.config.paths["diary_db"]).expanduser()
         logger.info(f"Using db {str(self.db_path)}")
         self.schemas_path = Path(__file__).parent / "schemas"
-        self.connection = None
-        self._setup_database()
-
-    def __enter__(self):
         self.connection = sqlite3.connect(self.db_path)
-        return self
+        self._setup_database()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.connection:
@@ -56,7 +53,8 @@ class DatabaseStorage(Storage):
 
         self.connection = sqlite3.connect(self.db_path)
 
-        for script in os.listdir(self.schemas_path):
+        #for script in os.listdir(self.schemas_path):
+        for script in self.schemas_path.glob("*.sql"):
             self.run_script(Path(self.schemas_path / script))
 
     def add_entry(self, entry):
@@ -82,7 +80,7 @@ class DatabaseStorage(Storage):
     def update_entry(self, old_entry, new_entry):
         try:
             with self.connection:
-                self.connection.execute(
+                self.connection.execute( # TODO This should be moved to delete_entry()
                     """
                     INSERT INTO entries_history (entry_id, timestamp, body, archived_at)
                     SELECT entry_id, timestamp, body, ?
@@ -107,12 +105,13 @@ class DatabaseStorage(Storage):
         except sqlite3.Error as e:
             logger.error(f"Failed to update entry for {str(old_entry.uid)}: {e}")
 
-    def open_entry(self, body, timestamp):
+    def delete_entry(self, entry):
+        # TODO build me
         pass
 
     def get_entries(self) -> list:
         query = """
-        SELECT entry_id, timestamp, body
+        SELECT *
         FROM entries
         ORDER BY entry_id DESC
         """
@@ -122,7 +121,7 @@ class DatabaseStorage(Storage):
             cursor.execute(query)
             self.connection.commit()
 
-            entries = []
+            entries: list = []
 
             for row in cursor:
                 logger.info(f"Found row: {row}")
@@ -145,3 +144,52 @@ class DatabaseStorage(Storage):
 
         except sqlite3.Error as e:
             logger.error(f"Failed to fetch entries: {e}")
+
+    def add_tag(self, tag, entry):
+        query = """
+        INSERT INTO tags (entry_id, tag)
+        VALUES (?, ?)
+        """
+
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(query, (entry.uid, tag))
+            self.connection.commit()
+
+            new_id = cursor.lastrowid
+
+            logger.debug(
+                f"Added tag '{tag}' at tag_id {str(new_id)}"
+            )
+
+        except sqlite3.Error as e:
+            logger.error(f"Failed to insert tag into database: {e}")
+        pass
+
+    def update_tag(self, tag):
+        pass
+
+    def delete_tag(self, tag):
+        pass
+
+    def get_tags_for_entry(self, entry):
+        query = """
+        SELECT *
+        FROM tags
+        WHERE entry_id = ?
+        """
+
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(query, (entry.uid))
+            self.connection.commit()
+
+            return [row[0] for row in cursor.fetchall()]           
+
+        except sqlite3.Error as e:
+            logger.error(f"Failed to fetch tags for entry {entry}: {e}")
+
+        return []
+
+
+

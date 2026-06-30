@@ -8,8 +8,10 @@ name = "lifelog"
 version = "0.1.0a1"
 requires-python = ">3.13.0"
 dependencies = [
+    "litellm>=1.81.6",
     "platformdirs>=4.5.1",
     "questionary>=2.1.1",
+    "rake-nltk>=1.0.6",
     "ruff>=0.14.14",
     "simple-term-menu>=1.6.6",
 ]

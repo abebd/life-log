@@ -11,7 +11,7 @@ class Storage(ABC):
         raise NotImplementedError("Subclasses must implemnet the 'type' property")
 
     @abstractmethod
-    def add_entry(self, body, timestamp):
+    def add_entry(self, entry):
         pass
 
     @abstractmethod
@@ -19,9 +19,6 @@ class Storage(ABC):
         pass
 
     @abstractmethod
-    def open_entry(self, body, timestamp):
-        pass
-
-    @abstractmethod
     def get_entries(self) -> list:
         pass
+

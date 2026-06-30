@@ -1,15 +1,21 @@
 import logging
+import os
 
+from importlib.metadata import version as get_version
 from simple_term_menu import TerminalMenu
+
 from lifelog.utils.cli import send_cls
 from lifelog.cli.interface import ui, State
+from lifelog.cli.editor import Editor
 
 logger = logging.getLogger(__name__)
 
+DEBUG_MODE = os.getenv("DEBUG_MODE") == "1"
 
 class MenuHandler:
     def __init__(self, app, config):
         self.app = app
+        self.config = config # TODO use getattr
 
         self.menu_options = [
             (
@@ -17,21 +23,28 @@ class MenuHandler:
                 "Create a new entry",
                 self.app.entry_handler.create_entry_from_editor,
             ),
-            ("r", "Read an entry", self.app.entry_handler.select_and_open_entry),
             (("q", "exit"), "Quit.", self._exit),
+            ("r", "Read an entry", self.app.entry_handler.select_and_open_entry),
+            ("t", "Add tags to an entry", self.handle_tagging_action)
         ]
 
     def _send_header(self):
         send_cls()
 
+        if DEBUG_MODE:
+            print(">>>>> DEBUG MODE IS ENABLED <<<<<\n")
+
+        if self.config.menu["decorative_header"]:
+            print(f"Version: lifelog-{get_version('lifelog')}\n================================================")
+
         for keys, label, _ in self.menu_options:
             display_key = keys[0] if isinstance(keys, tuple) else keys
             print(f"[{display_key}] {label}")
-
+        
     def run(self):
         ui.state = State.MENU
         while True:
-            logger.info(f"Current buffer: {ui.buffer}")
+            logger.debug(f"Current buffer: {ui.buffer}")
 
             self._send_header()
 
@@ -39,6 +52,8 @@ class MenuHandler:
                 print(f"\n{content}")
 
             choice = input("\nEnter option: ").strip().lower()
+
+            self._send_header()
 
             found = False
             for keys, _, func in self.menu_options:
@@ -49,10 +64,46 @@ class MenuHandler:
 
             if not found:
                 self._send_header()
-                input("\nInvalid option. Enter a valid option. ")
+                ui.print("Invalid option. Enter a valid option. ")
 
     def _exit(self):
         exit(0)
+
+    def handle_tagging_action(self):
+        # TODO fix this function its ugly and too large and should not be here.
+        #      most of it should be moved to lifelog/core/tagging.py
+        #      also check the other functions in this class if they can be refactored.
+        selected_entry = self.app.entry_handler.get_entry_from_user_cli(title="\nSelect an entry to tag: ")
+
+        if not selected_entry:
+            logger.warning("No entry was selected / Unable to find the selected entry")
+            return
+
+        editor = Editor(self.config.settings["editor"])
+        content = editor.edit_text(f"\n{self.app.tag_handler.get_tagging_template()}\n{selected_entry.body}")
+        tags = content.split("\n")[0].split(",")
+
+        if not tags:
+            msg = "No tags were provided."
+            ui.print(msg)
+            return
+
+        ui.print(f"Identified {len(tags)} tags. ({",".join(tags)})")
+
+        if content := ui.flush(): 
+            print(f"\n{content}")
+
+        user_input = prompt_user_input(
+            title="Apply these tags? [Y/n]:  ",
+            default="Y",
+        )
+
+        if not (user_input == "Y" or user_input == "y"):
+            return
+
+        self.app.tag_handler.apply_tags(tags, selected_entry)
+
+        ui.print(f"Applied tags: {", ".join(tags)}")
 
 
 def prompt_selection(items: tuple, title: str, ignore_help: bool = False):
@@ -72,3 +123,12 @@ def prompt_selection(items: tuple, title: str, ignore_help: bool = False):
 
     if selected_index is not None:
         return items[selected_index]
+
+def prompt_user_input(title, default=""):
+    user_input = input(title)
+
+    if not user_input:
+        return default
+
+    return user_input
+

@@ -6,15 +6,15 @@ from datetime import datetime
 from pathlib import Path
 
 from lifelog.cli.editor import Editor
-from lifelog.cli.menu import prompt_selection
+from lifelog.cli.menu import prompt_selection, prompt_user_input
 from lifelog.cli.interface import ui
 
 logger = logging.getLogger(__name__)
 
-
 class EntryHandler:
-    def __init__(self, config, storage):
-        self.config = config
+    def __init__(self, app, config, storage):
+        self.app = app
+        self.config = config # TODO use getattr
         self.storage = storage
         # self.entries = entries
 
@@ -67,43 +67,39 @@ class EntryHandler:
             if temp_path.exists():
                 temp_path.unlink()
 
-    def open_entry_in_editor(self, entry):
+    def edit_entry(self, entry, header=""):
         editor = Editor(self.config.settings["editor"])
 
         if entry is None:
             logger.warning("Failed to find entry to open in editor")
+            return
 
-        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tf:
-            temp_path = Path(tf.name)
+        new_content = editor.edit_text(entry.body)
 
-            tf.write(entry.body)
+        new_entry = Entry(
+            timestamp=datetime.now(),
+            body=new_content,
+            storage_type=self.storage.type,
+        )
 
-        try:
-            editor.open(temp_path)
-
-            new_entry = Entry(
-                timestamp=datetime.now(),
-                body=temp_path.read_text(encoding="utf-8"),
-                storage_type=self.storage.type,
+        if new_entry != entry:
+            logger.info(
+                f"User updated entry: {json.dumps({'body': new_entry.body, 'timestamp': str(new_entry.timestamp)})}"
             )
 
-            if new_entry != entry:
-                logger.info(
-                    f"User updated entry: {json.dumps({'body': new_entry.body, 'timestamp': str(new_entry.timestamp)})}"
-                )
+            self.storage.update_entry(entry, new_entry)
 
-                self.storage.update_entry(entry, new_entry)
-
-        finally:
-            if temp_path.exists():
-                temp_path.unlink()
-
-    def select_and_open_entry(self):
+    def get_entry_from_user_cli(self, title="Select an entry: "):
         entries = self.storage.get_entries()
+
+        if len(entries) == 0:
+            ui.print("No entries found.")
+            logger.warning("No entries found using current storage mode")
+            return
 
         selected_entry = prompt_selection(
             entries,
-            title="Select entry to view: ",
+            title=title,
         )
 
         if not selected_entry:
@@ -111,8 +107,13 @@ class EntryHandler:
             return
 
         logger.info(f"Chose entry: {selected_entry}")
+        return selected_entry
 
-        self.open_entry_in_editor(selected_entry)
+    def select_and_open_entry(self):
+        selected_entry = self.get_entry_from_user_cli(title="\nSelect an entry to view: ")
+
+        if selected_entry:
+            self.edit_entry(selected_entry)
 
 
 class Entry:

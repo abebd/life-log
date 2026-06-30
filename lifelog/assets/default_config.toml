@@ -10,3 +10,11 @@ diary_folder="~/.local/share/lifelog/diary"
 [storage]
 db_engine="sqlite3"
 file_extension="md"
+
+[ai]
+enabled=false
+model=""
+api_key=""
+
+[menu]
+decorative_header=true
