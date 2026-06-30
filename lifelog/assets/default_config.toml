@@ -17,4 +17,4 @@ model=""
 api_key=""
 
 [menu]
-decorative_header=true
+decorative_header=false
